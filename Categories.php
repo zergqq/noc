@@ -53,8 +53,6 @@ class Categories {
     }
 
 
-
-
     /**
      * Dodaje kategorie
      * @return int
@@ -229,10 +227,4 @@ class Categories {
         }
         return true;
     }
-
-
-
-
-
-
 }
