@@ -101,9 +101,9 @@ class Categories {
         if (!empty($data)) {
             $queryValues .= ','.join(',', array_map(array($this->db, 'quote'), $data));
         }
-
-        if (false === $this->db->exec('INSERT INTO '. $this->tableNameTrans .' ('.join(',', $queryCols).') VALUES('.$queryValues.')')) {
-            return false;
+        $sql = $this->db->prepare('INSERT INTO '. $this->tableNameTrans .' ('.join(',', $queryCols).') VALUES('.$queryValues.')');
+        if (!$sql->execute()) {
+            return false();
         }
         return true;
     }
@@ -115,8 +115,9 @@ class Categories {
      */
 
     public function removeCategory($categoryId){
-        if (false === $this->db->exec('DELETE FROM '. $this->tableName .' WHERE '.$this->idColName.'='.$categoryId)) {
-            return false;
+        $sql = $this->db->prepare('DELETE FROM '. $this->tableName .' WHERE '.$this->idColName.'='.$categoryId);
+        if (!$sql->execute()) {
+            return false();
         }
         return true;
     }
