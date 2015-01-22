@@ -15,7 +15,7 @@ function connDB()
         $tree = new Categories($pdo, 'category','category_trans', 'id_category', 'id_parent', 'lft', 'rgt');
 
         // dodawanie kategorii
-        // $tree->addCategory(72, array('language_code' => 'pl','title' => 'ziemniak', 'description' => 'ziemniak_opis'));
+        $tree->addCategory(74, array('language_code' => 'pl','title' => 'ziemniak4', 'description' => 'ziemniak_opis'));
 
         // dodawanie tlumaczenia
         // $tree->addTrans(72, array('language_code' => 'en','title' => 'potato', 'description' => 'potato_desc'));

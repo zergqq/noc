@@ -33,13 +33,18 @@ class Categories {
     public function setDefaultFetchMode($mode){
         $this->defaultFetchMode = $mode;
     }
-
+    
+    /**
+     * Pobiera wszystkie kategorie
+     * @return array
+     */
+    
     public function getCategories(){
-        $query = 'SELECT element.*, (COUNT(parent.' . $this->idColName . ') - 1) AS depth
-		FROM '.$this->tableName.' AS element, '.$this->tableName.' AS parent
-		WHERE (element.' . $this->lftColName . ' BETWEEN parent.' . $this->lftColName . ' AND parent.' . $this->rgtColName . ')
-		GROUP BY element.' . $this->idColName;
-        $query .= ' ORDER BY element.' . $this->lftColName;
+        $query = 'SELECT category.*, (COUNT(parent.' . $this->idColName . ') - 1) AS depth
+		FROM '.$this->tableName.' AS category, '.$this->tableName.' AS parent
+		WHERE (category.' . $this->lftColName . ' BETWEEN parent.' . $this->lftColName . ' AND parent.' . $this->rgtColName . ')
+		GROUP BY category.' . $this->idColName;
+        $query .= ' ORDER BY category.' . $this->lftColName;
         $sql = $this->db->prepare($query);
         if ( !$sql->execute() ){
             return false;
@@ -47,7 +52,12 @@ class Categories {
         return $sql->fetchAll($this->defaultFetchMode);
     }
 
-
+    /**
+     * Dodaje kategorie
+     * @return int
+     * @param int $parentId,
+     * @param array $data
+     */
 
     public function addCategory($parentId,$data)
     {
@@ -65,21 +75,26 @@ class Categories {
         }
         $queryCols = array($this->lftColName, $this->rgtColName, $this->parentIdColName);
         $queryValues = $rgt . ',' . $rgt . ' + 1,' . $parentId;
-        if (false === $this->db->exec('INSERT INTO ' . $this->tableName . ' (' . join(',', $queryCols) . ') VALUES(' . $queryValues . ')')) {
-            return false;
-        }
-        $lastId=$this->db->lastInsertId('category');
+        $LastIdArr=$this->db->exec('INSERT INTO ' . $this->tableName . ' (' . join(',', $queryCols) . ') VALUES(' . $queryValues . ') RETURNING  '.$this->$idColName.'');
+        $lastId=$LastIdArr[0];
         if (false == $this->addTrans($lastId, $data)) {
             return false;
         }
         return $lastId;
     }
 
-    public function addTrans($elementId,$data){
+    /**
+     * Dodaje tlumaczenie do wybranego categoryu
+     * @return boolean
+     * @param int $categoryId
+     * @param array $data
+     */
+
+    public function addTrans($categoryId,$data){
 
         $queryCols = array($this->idColName);
         $queryCols = array_merge($queryCols, array_keys($data));
-        $queryValues = $elementId;
+        $queryValues = $categoryId;
         if (!empty($data)) {
             $queryValues .= ','.join(',', array_map(array($this->db, 'quote'), $data));
         }
@@ -90,17 +105,28 @@ class Categories {
         return true;
     }
 
-    public function removeCategory($elementId){
-        if (false === $this->db->exec('DELETE FROM '. $this->tableName .' WHERE '.$this->idColName.'='.$elementId)) {
+    /**
+     * Usuwa kategorie
+     * @return boolean
+     * @param int $categoryId
+     */
+
+    public function removeCategory($categoryId){
+        if (false === $this->db->exec('DELETE FROM '. $this->tableName .' WHERE '.$this->idColName.'='.$categoryId)) {
             return false;
         }
         return true;
     }
 
+    /**
+     * Pobiera kategorie
+     * @return array
+     * @param int $categoryId
+     */
 
-    public function getelementById($elementId){
+    public function getCategoryById($categoryId){
         $sql = $this->db->prepare('SELECT * FROM '.$this->tableName.' WHERE ' . $this->idColName . ' = ?');
-        if (!$sql->execute(array($elementId))) {
+        if (!$sql->execute(array($categoryId))) {
             return array();
         }
         if (!$sql->rowCount()) {
@@ -109,70 +135,86 @@ class Categories {
         return $sql->fetch($this->defaultFetchMode);
     }
 
-    public function getelementWithChildrenIds($lft, $rgt){
-        $sql = $this->db->prepare('SELECT '.$this->$idColName.' FROM '.$this->tableName.' AS element WHERE element.'.$this->lftColName.' >= ? AND element.'.$this->rgtColName.' <= ? ORDER BY element.'.$this->lftColName);
+    /**
+     * Pobiera id dzieci kategorii
+     * @return array
+     * @param int $lft
+     * @param int $rgt
+     */
+
+    public function getCategoryWithChildrenIds($lft, $rgt){
+        $sql = $this->db->prepare('SELECT '.$this->$idColName.' FROM '.$this->tableName.' AS category WHERE category.'.$this->lftColName.' >= ? AND category.'.$this->rgtColName.' <= ? ORDER BY category.'.$this->lftColName);
         if (!$sql->execute(array($lft, $rgt))) {
             return array();
         }
         return $sql->fetchAll(PDO::FETCH_COLUMN, 0);
     }
 
-    public function moveCategory($elementId, $parentelementId){
-        $elementToMove = $this->getelementById($elementId);
-        $parent = $this->getelementById($parentelementId);
-        if ($parent[$this->idColName] == $elementToMove[$this->parentIdColName]) {
+
+    /**
+     * Przenosi kategorie na sam koniec do wezla docelowego
+     * @return bool
+     * @param int categoryId
+     * @param int $parentcategoryId
+     */
+
+
+    public function moveCategory($categoryId, $parentcategoryId){
+        $categoryToMove = $this->getCategoryById($categoryId);
+        $parent = $this->getCategoryById($parentcategoryId);
+        if ($parent[$this->idColName] == $categoryToMove[$this->parentIdColName]) {
             return false;
         }
-        $elementWithChildrenIds = $this->getelementWithChildrenIds($elementToMove[$this->lftColName], $elementToMove[$this->rgtColName]);
-        if (in_array($parentelementId, $elementWithChildrenIds)) {
+        $categoryWithChildrenIds = $this->getCategoryWithChildrenIds($categoryToMove[$this->lftColName], $categoryToMove[$this->rgtColName]);
+        if (in_array($parentcategoryId, $categoryWithChildrenIds)) {
             return false;
         }
-        $elementToMoveWidth = $elementToMove[$this->rgtColName] - $elementToMove[$this->lftColName] + 1;
+        $categoryToMoveWidth = $categoryToMove[$this->rgtColName] - $categoryToMove[$this->lftColName] + 1;
         $sql = 'UPDATE '.$this->tableName.' SET '.
-            $this->lftColName.' = '.$this->lftColName.' - '.$elementToMoveWidth.' '.
-            'WHERE '.$this->lftColName.' > '.$elementToMove[$this->rgtColName].'
-		AND '.$this->idColName.' NOT IN ('.implode(',', $elementWithChildrenIds).')';
+            $this->lftColName.' = '.$this->lftColName.' - '.$categoryToMoveWidth.' '.
+            'WHERE '.$this->lftColName.' > '.$categoryToMove[$this->rgtColName].'
+		AND '.$this->idColName.' NOT IN ('.implode(',', $categoryWithChildrenIds).')';
         if (false === $this->db->exec($sql)) {
             return false;
         }
         $sql = 'UPDATE '.$this->tableName.' SET '.
-            $this->rgtColName.' = '.$this->rgtColName.' - '.$elementToMoveWidth.' '.
-            'WHERE '.$this->rgtColName.' > '.$elementToMove[$this->rgtColName].'
-		AND '.$this->idColName.' NOT IN ('.implode(',', $elementWithChildrenIds).')';
+            $this->rgtColName.' = '.$this->rgtColName.' - '.$categoryToMoveWidth.' '.
+            'WHERE '.$this->rgtColName.' > '.$categoryToMove[$this->rgtColName].'
+		AND '.$this->idColName.' NOT IN ('.implode(',', $categoryWithChildrenIds).')';
         if (false === $this->db->exec($sql)) {
             return false;
         }
-        if ($parent[$this->lftColName] > $elementToMove[$this->lftColName]) {
-            $parent[$this->lftColName] -= $elementToMoveWidth;
+        if ($parent[$this->lftColName] > $categoryToMove[$this->lftColName]) {
+            $parent[$this->lftColName] -= $categoryToMoveWidth;
         }
-        if($parent[$this->rgtColName] > $elementToMove[$this->rgtColName]){
-            $parent[$this->rgtColName] -= $elementToMoveWidth;
+        if($parent[$this->rgtColName] > $categoryToMove[$this->rgtColName]){
+            $parent[$this->rgtColName] -= $categoryToMoveWidth;
         }
         $sql = 'UPDATE '.$this->tableName.' SET '.
-            $this->lftColName.' = '.$this->lftColName.' + '.$elementToMoveWidth.' '.
+            $this->lftColName.' = '.$this->lftColName.' + '.$categoryToMoveWidth.' '.
             'WHERE '.$this->lftColName.' > '.$parent[$this->rgtColName].'
-		AND '.$this->idColName.' NOT IN ('.implode(',', $elementWithChildrenIds).')';
+		AND '.$this->idColName.' NOT IN ('.implode(',', $categoryWithChildrenIds).')';
         if (false === $this->db->exec($sql)) {
             return false;
         }
         $sql = 'UPDATE '.$this->tableName.' SET '.
-            $this->rgtColName.' = '.$this->rgtColName.' + '.$elementToMoveWidth.' '.
+            $this->rgtColName.' = '.$this->rgtColName.' + '.$categoryToMoveWidth.' '.
             'WHERE '.$this->rgtColName.' >= '.$parent[$this->rgtColName].'
-		AND '.$this->idColName.' NOT IN ('.implode(',', $elementWithChildrenIds).')';
+		AND '.$this->idColName.' NOT IN ('.implode(',', $categoryWithChildrenIds).')';
         if (false === $this->db->exec($sql)) {
             return false;
         }
-        $parent[$this->rgtColName] += $elementToMoveWidth;
-        $offset = $parent[$this->rgtColName] - ($elementToMove[$this->lftColName] + $elementToMoveWidth);
+        $parent[$this->rgtColName] += $categoryToMoveWidth;
+        $offset = $parent[$this->rgtColName] - ($categoryToMove[$this->lftColName] + $categoryToMoveWidth);
         $sql = 'UPDATE '.$this->tableName.' SET '.
             $this->lftColName.' = '.$this->lftColName.' + '.$offset.', '.
             $this->rgtColName.' = '.$this->rgtColName.' + '.$offset.' '.
-            'WHERE '.$this->idColName.' IN ('.implode(',', $elementWithChildrenIds).')';
+            'WHERE '.$this->idColName.' IN ('.implode(',', $categoryWithChildrenIds).')';
         if (false === $this->db->exec($sql)) {
             return false;
         }
-        $sql = 'UPDATE '.$this->tableName.' SET '.$this->parentIdColName.' = '.$parentelementId.'
-		WHERE '.$this->idColName.' = '.$elementId;
+        $sql = 'UPDATE '.$this->tableName.' SET '.$this->parentIdColName.' = '.$parentcategoryId.'
+		WHERE '.$this->idColName.' = '.$categoryId;
         if (false === $this->db->exec($sql)) {
             return false;
         }
