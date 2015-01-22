@@ -6,11 +6,11 @@
  * Time: 09:24
  */
 include 'Categories.php';
-function connDB()
+function zadanie()
 {
     try
     {
-        $pdo = new PDO('pgsql:dbname=nocowanie;host=localhost;user=zadanie_nocowanie;password=PASS');
+        $pdo = new PDO('pgsql:dbname=nocowanie;host=localhost;user=zadanie_nocowanie;password=ppvdjFNt94YSbdBr');
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $tree = new Categories($pdo, 'category','category_trans', 'id_category', 'id_parent', 'lft', 'rgt');
 
@@ -20,16 +20,13 @@ function connDB()
         // dodawanie tlumaczenia
         // $tree->addTrans(72, array('language_code' => 'en','title' => 'potato', 'description' => 'potato_desc'));
 
-        // wyswietlanie
-        // $tree->draw('pl');
-
         // usuwanie kategorii
         // $tree->removeCategory(45);
 
         // przenoszenie kategorii
         // $tree->moveCategory(24, 23);
 
-
+        // wyswietlanie
         echo show($tree->getCategories());
     }
     catch (Exception $e)
@@ -41,18 +38,18 @@ function connDB()
 function show($tree)
 {
     $str = '';
-    foreach ($tree as $element) {
-        if ($element['depth'] > 0) {
-            $str .= "|" . str_repeat("  |", $element['depth']) . "-" . $element['id_category'] . "</br>";
+    foreach ($tree as $category) {
+        if ($category['depth'] > 0) {
+            $str .= "|" . str_repeat("  |", $category['depth']) . "-" . $category['id_category'] . "</br>";
         } else {
-            $str .= '|-' . $element['id_category'] . "</br>";
+            $str .= '|-' . $category['id_category'] . "</br>";
         }
     }
     return $str;
 }
 
 
-connDB();
+zadanie();
 
 
 

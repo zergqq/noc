@@ -52,6 +52,9 @@ class Categories {
         return $sql->fetchAll($this->defaultFetchMode);
     }
 
+
+
+
     /**
      * Dodaje kategorie
      * @return int
