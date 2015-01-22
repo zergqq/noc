@@ -14,7 +14,7 @@ CREATE TABLE category
 create table category_trans
     (
 		id_category_trans serial  primary key,
-		id_category int  unique constraint category_trans_ibfk_1 references category on delete cascade,
+		id_category int  constraint category_trans_ibfk_1 references category on delete cascade,
 		language_code varchar(5) not null,
 		title varchar(100) not null,
 		description varchar(255) not null

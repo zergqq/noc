@@ -15,14 +15,14 @@ function zadanie()
         $tree = new Categories($pdo, 'category','category_trans', 'id_category', 'id_parent', 'lft', 'rgt');
 
         // dodawanie kategorii
-        //$tree->addCategory(74, array('language_code' => 'pl','title' => 'ziemniak4', 'description' => 'ziemniak_opis'));
+        //$tree->addCategory(1, array('language_code' => 'pl','title' => 'jezyki', 'description' => 'jezyki_opis'));
 
         // dodawanie tlumaczenia
-        // $tree->addTrans(72, array('language_code' => 'en','title' => 'potato', 'description' => 'potato_desc'));
+
+        //$tree->addTrans(2, array('language_code' => 'en','title' => 'languages', 'description' => 'languages_desc'));
 
          //usuwanie kategorii
-         $tree->removeCategory(104);
-
+         //$tree->removeCategory(146);
         // przenoszenie kategorii
         // $tree->moveCategory(24, 23);
 

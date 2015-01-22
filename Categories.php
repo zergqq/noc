@@ -33,12 +33,12 @@ class Categories {
     public function setDefaultFetchMode($mode){
         $this->defaultFetchMode = $mode;
     }
-    
+
     /**
      * Pobiera wszystkie kategorie
      * @return array
      */
-    
+
     public function getCategories(){
         $query = 'SELECT category.*, (COUNT(parent.' . $this->idColName . ') - 1) AS depth
 		FROM '.$this->tableName.' AS category, '.$this->tableName.' AS parent
@@ -78,8 +78,12 @@ class Categories {
         }
         $queryCols = array($this->lftColName, $this->rgtColName, $this->parentIdColName);
         $queryValues = $rgt . ',' . $rgt . ' + 1,' . $parentId;
-        $LastIdArr=$this->db->exec('INSERT INTO ' . $this->tableName . ' (' . join(',', $queryCols) . ') VALUES(' . $queryValues . ') RETURNING  '.$this->$idColName.'');
-        $lastId=$LastIdArr[0];
+        $query = 'INSERT INTO ' . $this->tableName . ' (' . join(',', $queryCols) . ') VALUES(' . $queryValues . ')RETURNING id_category';
+        $queryHandle = $this->db->prepare($query);
+        $queryHandle->execute();
+        $lastId =  $queryHandle->fetchColumn();
+
+
         if (false == $this->addTrans($lastId, $data)) {
             return false;
         }
@@ -106,6 +110,7 @@ class Categories {
             return false();
         }
         return true;
+
     }
 
     /**
