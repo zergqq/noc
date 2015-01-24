@@ -10,7 +10,7 @@ function zadanie()
 {
     try
     {
-        $pdo = new PDO('pgsql:dbname=nocowanie;host=localhost;user=zadanie_nocowanie;password=PASS');
+        $pdo = new PDO('pgsql:dbname=nocowanie;host=localhost;user=zadanie_nocowanie;password=ppvdjFNt94YSbdBr');
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $tree = new Categories($pdo, 'category','category_trans', 'id_category', 'id_parent', 'lft', 'rgt');
 
@@ -27,7 +27,7 @@ function zadanie()
         // $tree->moveCategory(24, 23);
 
         // wyswietlanie kategorii
-        echo show($tree->getCategories('pl'));
+        echo show($tree->getCategories());
     }
     catch (Exception $e)
     {
