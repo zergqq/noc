@@ -39,12 +39,21 @@ class Categories {
      * @return array
      */
 
-    public function getCategories(){
-        $query = 'SELECT category.*, (COUNT(parent.' . $this->idColName . ') - 1) AS depth
-		FROM '.$this->tableName.' AS category, '.$this->tableName.' AS parent
-		WHERE (category.' . $this->lftColName . ' BETWEEN parent.' . $this->lftColName . ' AND parent.' . $this->rgtColName . ')
-		GROUP BY category.' . $this->idColName;
-        $query .= ' ORDER BY category.' . $this->lftColName;
+
+
+    public function getCategories($lang){
+        $query = "SELECT A.id_category,A.id_parent,A.lft,A.rgt,
+        (SELECT count(*)
+        FROM category A2
+        WHERE A.lft BETWEEN A2.lft AND A2.rgt)-1
+        as depth,
+        B.title,
+        B.description
+        FROM category A, category_trans B
+        WHERE A.id_category = B.id_category
+        AND B.language_code ='$lang'";
+
+        $query .= ' ORDER BY A.' . $this->lftColName;
         $sql = $this->db->prepare($query);
         if ( !$sql->execute() ){
             return false;

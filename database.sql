@@ -11,7 +11,7 @@ CREATE TABLE category
 
 
 /* definicja tabeli z tlumaczeniami */
-create table category_trans
+CREATE TABLE category_trans
     (
 		id_category_trans serial  primary key,
 		id_category int  constraint category_trans_ibfk_1 references category on delete cascade,

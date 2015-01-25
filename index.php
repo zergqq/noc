@@ -10,16 +10,17 @@ function zadanie()
 {
     try
     {
-        $pdo = new PDO('pgsql:dbname=nocowanie;host=localhost;user=zadanie_nocowanie;password=ppvdjFNt94YSbdBr');
+        $pdo = new PDO('pgsql:dbname=nocowanie;host=localhost;user=zadanie_nocowanie;password=PASS');
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $tree = new Categories($pdo, 'category','category_trans', 'id_category', 'id_parent', 'lft', 'rgt');
 
         // dodawanie kategorii
-        //$tree->addCategory(34, array('language_code' => 'pl','title' => 'raz', 'description' => 'jezyki_opis'));
+        //$tree->addCategory(44, array('language_code' => 'eng','title' => 'EnglishTitleQQQ', 'description' => 'EnglishDQQQ'));
+        //$tree->addCategory(43, array('language_code' => 'eng','title' => 'EnglishTitleDDD', 'description' => 'EnglishDDDD'));
+        //$tree->addCategory(44, array('language_code' => 'eng','title' => 'EnglishTitleHHH', 'description' => 'EnglishDHHH'));
 
         // dodawanie tlumaczenia
-        //$tree->addTrans(2, array('language_code' => 'en','title' => 'languages', 'description' => 'languages_desc'));
-
+        //$tree->addTrans(43, array('language_code' => 'ger','title' => 'GermanTitleXXX', 'description' => 'GermanDXXX'));
          //usuwanie kategorii
          //$tree->removeCategory(146);
 
@@ -27,7 +28,7 @@ function zadanie()
         // $tree->moveCategory(24, 23);
 
         // wyswietlanie kategorii
-        echo show($tree->getCategories());
+        echo show($tree->getCategories('ger'));
     }
     catch (Exception $e)
     {
@@ -40,9 +41,9 @@ function show($tree)
     $str = '';
     foreach ($tree as $category) {
         if ($category['depth'] > 0) {
-            $str .= "|" . str_repeat("  |", $category['depth']) . "-" . $category['id_category'] .$category['title']. "</br>";
+            $str .= "|" . str_repeat("  |", $category['depth']) . "--" . $category['id_category'] .$category['title']. "</br>";
         } else {
-            $str .= '|-' . $category['id_category'] . $category['title']. "</br>";
+            $str .= '|--' . $category['id_category'] . $category['title']. "</br>";
         }
     }
     return $str;
